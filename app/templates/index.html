@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Knowledge Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        .file-label:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #cbd5e0;
+        }
+
+        .status-dot.healthy {
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.unhealthy {
+            background: #f56565;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .response-content {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .response-meta {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .sources {
+            margin-top: 20px;
+        }
+
+        .source-item {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .source-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f56565;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .recording-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f7fafc;
+            text-align: center;
+        }
+
+        .recording-status.recording {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .voice-conversation {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .voice-conversation button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 30px;
+            font-size: 18px;
+        }
+
+        .voice-conversation button:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-brain"></i> RAG Knowledge Management System</h1>
+            <p>Upload documents, ask questions, and interact with voice features</p>
+        </header>
+
+        <!-- System Status -->
+        <div class="section">
+            <h2><i class="fas fa-heartbeat"></i> System Status</h2>
+            <div class="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Checking...</span>
+                <button class="btn btn-secondary" onclick="checkSystemHealth()">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Document Upload -->
+        <div class="section">
+            <h2><i class="fas fa-upload"></i> Upload Documents</h2>
+            <div class="input-group">
+                <label>Select Files (PDF, TXT)</label>
+                <input type="file" id="file-input" accept=".txt,.pdf" multiple>
+                <label for="file-input" class="file-label">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Choose Files (.txt, .pdf)
+                </label>
+            </div>
+            <button class="btn btn-primary" onclick="uploadDocuments()">
+                <i class="fas fa-upload"></i> Upload Documents
+            </button>
+            <div id="upload-status"></div>
+        </div>
+
+        <!-- Voice Recording -->
+        <div class="section">
+            <h2><i class="fas fa-microphone"></i> Voice Recording</h2>
+            <div class="controls">
+                <button class="btn btn-record" id="start-recording" onclick="startRecording()">
+                    <i class="fas fa-microphone"></i> Start Recording
+                </button>
+                <button class="btn btn-stop" id="stop-recording" onclick="stopRecording()" disabled>
+                    <i class="fas fa-stop"></i> Stop Recording
+                </button>
+                <button class="btn btn-play" id="play-recording" onclick="playRecording()" disabled>
+                    <i class="fas fa-play"></i> Play Recording
+                </button>
+            </div>
+            <div id="recording-status" class="recording-status"></div>
+            <audio id="recorded-audio" class="audio-player" controls style="display: none;"></audio>
+        </div>
+
+        <!-- Question Input -->
+        <div class="section">
+            <h2><i class="fas fa-question-circle"></i> Ask Questions</h2>
+            <div class="input-group">
+                <label>Enter your question</label>
+                <textarea id="question-input" placeholder="Type your question here or use voice recording above..."></textarea>
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="askQuestion()">
+                    <i class="fas fa-paper-plane"></i> Ask Question
+                </button>
+                <button class="btn btn-secondary" onclick="clearQuestion()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="include-sources" checked>
+                    Include Sources
+                </label>
+            </div>
+        </div>
+
+        <!-- AI Response -->
+        <div class="section">
+            <h2><i class="fas fa-comment-dots"></i> AI Response</h2>
+            <div id="response-container">
+                <div class="response-content">
+                    <p style="color: #718096; text-align: center;">Upload documents and ask questions to get started...</p>
+                </div>
+            </div>
+            <div id="response-controls" class="controls" style="display: none;">
+                <button class="btn btn-primary" onclick="speakResponse()">
+                    <i class="fas fa-volume-up"></i> Speak Response
+                </button>
+                <button class="btn btn-secondary" onclick="copyResponse()">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            <audio id="response-audio" class="audio-player" controls style="display: none;"></audio>
+            <div id="sources-container" style="display: none;">
+                <h3><i class="fas fa-book-open"></i> Sources</h3>
+                <div id="sources-content"></div>
+            </div>
+        </div>
+
+        <!-- Voice Conversation -->
+        <div class="section voice-conversation">
+            <h2><i class="fas fa-comments"></i> Voice Conversation</h2>
+            <p>Record your question and get an audio response from the AI</p>
+            <button class="btn" onclick="startVoiceConversation()">
+                <i class="fas fa-microphone-alt"></i> Start Voice Conversation
+            </button>
+            <div id="voice-status"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Processing...</div>
+    </div>
+
+    <script>
+        // Global variables
+        let mediaRecorder = null;
+        let recordedBlobs = [];
+        let isRecording = false;
+        let currentResponse = '';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemHealth();
+            setupKeyboardShortcuts();
+        });
+
+        function setupKeyboardShortcuts() {
+            document.getElementById('question-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    askQuestion();
+                }
+            });
+        }
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        function showMessage(message, type = 'info', containerId = 'upload-status') {
+            const container = document.getElementById(containerId);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i> ${message}`;
+            
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+
+        async function checkSystemHealth() {
+            try {
+                const response = await fetch('/health');
+                const health = await response.json();
+                
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                
+                if (health.status === 'healthy') {
+                    statusDot.className = 'status-dot healthy';
+                    statusText.textContent = 'All systems operational';
+                } else {
+                    statusDot.className = 'status-dot unhealthy';
+                    statusText.textContent = 'Some services degraded';
+                }
+            } catch (error) {
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                statusDot.className = 'status-dot unhealthy';
+                statusText.textContent = 'System unavailable';
+                console.error('Health check failed:', error);
+            }
+        }
+
+        async function uploadDocuments() {
+            const fileInput = document.getElementById('file-input');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                showMessage('Please select files to upload', 'error');
+                return;
+            }
+
+            showLoading('Uploading and processing documents...');
+
+            try {
+                for (let file of files) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        showMessage(`${file.name} processed successfully (${result.chunks_processed} chunks)`, 'success');
+                    } else {
+                        showMessage(`Error processing ${file.name}: ${result.error}`, 'error');
+                    }
+                }
+                
+                fileInput.value = '';
+                
+            } catch (error) {
+                showMessage(`Upload failed: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function askQuestion() {
+            const question = document.getElementById('question-input').value.trim();
+            if (!question) {
+                showMessage('Please enter a question', 'error', 'response-container');
+                return;
+            }
+
+            showLoading('Getting AI response...');
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        question: question,
+                        include_sources: document.getElementById('include-sources').checked
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayResponse(result);
+                } else {
+                    displayError(result.error);
+                }
+
+            } catch (error) {
+                displayError(`Query failed: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayResponse(result) {
+            currentResponse = result.answer;
+            
+            const responseContainer = document.getElementById('response-container');
+            responseContainer.innerHTML = `
+                <div class="response-content">
+                    <div class="response-text">${result.answer}</div>
+                    <div class="response-meta">
+                        <i class="fas fa-clock"></i> Response time: ${result.response_time?.toFixed(2)}s
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('response-controls').style.display = 'flex';
+            
+            // Display sources if available
+            if (result.sources && result.sources.length > 0) {
+                displaySources(result.sources);
+            } else {
+                document.getElementById('sources-container').style.display = 'none';
+            }
+        }
+
+        function displaySources(sources) {
+            const sourcesContainer = document.getElementById('sources-container');
+            const sourcesContent = document.getElementById('sources-content');
+            
+            sourcesContent.innerHTML = '';
+            sources.forEach((source) => {
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'source-item';
+                sourceDiv.innerHTML = `
+                    <h4>Source ${source.id}</h4>
+                    <p>${source.content}</p>
+                    <small style="color: #718096;">${JSON.stringify(source.metadata, null, 2)}</small>
+                `;
+                sourcesContent.appendChild(sourceDiv);
+            });
+            
+            sourcesContainer.style.display = 'block';
+        }
+
+        function displayError(error) {
+            const responseContainer = document.getElementById('response-container');
+            responseContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error: ${error}
+                </div>
+            `;
+            document.getElementById('response-controls').style.display = 'none';
+            document.getElementById('sources-container').style.display = 'none';
+        }
+
+        function clearQuestion() {
+            document.getElementById('question-input').value = '';
+            document.getElementById('question-input').focus();
+        }
+
+        async function speakResponse() {
+            if (!currentResponse) {
+                showMessage('No response to speak', 'error', 'response-container');
+                return;
+            }
+
+            showLoading('Generating speech...');
+
+            try {
+                const response = await fetch('/audio/synthesize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        text: currentResponse,
+                        format: 'base64',
+                        language: 'en'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const audio = document.getElementById('response-audio');
+                    audio.src = `data:audio/mpeg;base64,${result.audio_data}`;
+                    audio.style.display = 'block';
+                    audio.play();
+                } else {
+                    showMessage(`Speech synthesis failed: ${result.error}`, 'error', 'response-container');
+                }
+
+            } catch (error) {
+                showMessage(`Speech synthesis failed: ${error.message}`, 'error', 'response-container');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function copyResponse() {
+            if (currentResponse) {
+                navigator.clipboard.writeText(currentResponse).then(() => {
+                    showMessage('Response copied to clipboard!', 'success', 'response-container');
+                });
+            }
+        }
+
+        // Voice Recording Functions
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                recordedBlobs = [];
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedBlobs, { type: 'audio/wav' });
+                    const audioUrl = window.URL.createObjectURL(blob);
+                    
+                    const recordedAudio = document.getElementById('recorded-audio');
+                    recordedAudio.src = audioUrl;
+                    recordedAudio.style.display = 'block';
+                    
+                    document.getElementById('play-recording').disabled = false;
+                    
+                    // Auto-transcribe the recording
+                    transcribeRecording(blob);
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                
+                document.getElementById('start-recording').disabled = true;
+                document.getElementById('stop-recording').disabled = false;
+                document.getElementById('recording-status').innerHTML = 
+                    '<i class="fas fa-microphone"></i> Recording... Click stop when finished.';
+                document.getElementById('recording-status').className = 'recording-status recording';
+                
+            } catch (error) {
+                showMessage(`Could not start recording: ${error.message}`, 'error', 'recording-status');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                isRecording = false;
+                document.getElementById('start-recording').disabled = false;
+                document.getElementById('stop-recording').disabled = true;
+                document.getElementById('recording-status').innerHTML = 
+                    '<i class="fas fa-check"></i> Recording stopped. Transcribing...';
+                document.getElementById('recording-status').className = 'recording-status';
+            }
+        }
+
+        function playRecording() {
+            const audio = document.getElementById('recorded-audio');
+            audio.play();
+        }
+
+        async function transcribeRecording(blob) {
+            showLoading('Transcribing audio...');
+            
+            try {
+                const formData = new FormData();
+                formData.append('audio', blob, 'recording.wav');
+                
+                const response = await fetch('/audio/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('question-input').value = result.transcription;
+                    document.getElementById('recording-status').innerHTML = 
+                        `<i class="fas fa-check"></i> Transcribed: "${result.transcription}"`;
+                } else {
+                    showMessage(`Transcription failed: ${result.error}`, 'error', 'recording-status');
+                }
+                
+            } catch (error) {
+                showMessage(`Transcription failed: ${error.message}`, 'error', 'recording-status');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Voice Conversation (Voice-to-Voice)
+        async function startVoiceConversation() {
+            const voiceStatus = document.getElementById('voice-status');
+            voiceStatus.innerHTML = '<i class="fas fa-microphone"></i> Starting voice conversation...';
+            
+            try {
+                // Start recording for voice conversation
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const tempBlobs = [];
+                const tempRecorder = new MediaRecorder(stream);
+                
+                tempRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        tempBlobs.push(event.data);
+                    }
+                };
+                
+                tempRecorder.onstop = async () => {
+                    const blob = new Blob(tempBlobs, { type: 'audio/wav' });
+                    await processVoiceConversation(blob);
+                };
+                
+                voiceStatus.innerHTML = '<i class="fas fa-microphone"></i> Recording... (recording will auto-stop in 10 seconds)';
+                tempRecorder.start();
+                
+                // Auto-stop after 10 seconds
+                setTimeout(() => {
+                    tempRecorder.stop();
+                    stream.getTracks().forEach(track => track.stop());
+                }, 10000);
+                
+            } catch (error) {
+                voiceStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`;
+            }
+        }
+
+        async function processVoiceConversation(blob) {
+            const voiceStatus = document.getElementById('voice-status');
+            voiceStatus.innerHTML = '<i class="fas fa-cog fa-spin"></i> Processing voice conversation...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('audio', blob, 'voice-conversation.wav');
+                formData.append('language', 'en');
+                formData.append('include_sources', 'true');
+                
+                const response = await fetch('/audio/voice-to-voice', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Display the conversation
+                    voiceStatus.innerHTML = `
+                        <div style="text-align: left; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            <h4><i class="fas fa-user"></i> You said:</h4>
+                            <p>"${result.user_speech}"</p>
+                            
+                            <h4><i class="fas fa-robot"></i> AI Response:</h4>
+                            <p>"${result.ai_response_text}"</p>
+                            
+                            <audio controls style="width: 100%; margin-top: 10px;">
+                                <source src="data:audio/mpeg;base64,${result.ai_response_audio}" type="audio/mpeg">
+                            </audio>
+                        </div>
+                    `;
+                } else {
+                    voiceStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${result.error}`;
+                }
+                
+            } catch (error) {
+                voiceStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+# Production-Ready LLM Application with RAG, Audio, and Enhanced Logging
+# FIXED VERSION - Compatible with current PyPI packages
+
+# Core Flask dependencies
+Flask
+Flask-CORS
+Werkzeug
+
+# Environment and configuration
+python-dotenv
+
+# AI and ML dependencies
+langchain
+langchain-groq
+groq
+
+# Vector database and embeddings
+chromadb
+sentence-transformers
+
+# HuggingFace integration for FREE embeddings (UPDATED VERSIONS)
+transformers
+torch
+tokenizers
+
+# Document processing
+PyPDF2
+pypdf
+python-docx
+
+# AWS SDK
+boto3
+botocore
+
+# Audio processing dependencies
+openai-whisper
+torchaudio
+torchvision
+
+# Coqui TTS (UPDATED VERSION)
+TTS
+
+# Audio processing utilities
+librosa
+soundfile
+numpy
+scipy
+
+# Data processing
+pandas
+
+# HTTP requests
+requests
+urllib3
+
+# Logging and monitoring
+colorama
+
+# Text processing
+nltk
+
+# Testing dependencies (optional - for development)
+pytest
+pytest-flask
+pytest-mock
+
+# Development dependencies (optional)
+black
+flake8
+isort
+
+# Security
+cryptography
+
+# Image processing (for potential document images)
+Pillow
+
+# Progress bars and CLI utilities
+tqdm
+click
+
+# Date/time utilities
+python-dateutil
+
+# Memory management
+psutil
+
+# JSON and data serialization
+orjson
+
+# Configuration parsing
+pyyaml
+
+# HTTP server utilities (for production)
+gunicorn
+
+# Additional utilities
+six
+certifi
+charset-normalizer
+idna
+
+# Rate limiting
+Flask-Limiter
+
+# Environment variables
+environs
+
+# Cache management
+cachetools
+
+# File monitoring
+watchdog
+
+# Version pinning for stability
+setuptools
+wheel
+
+# Core dependencies for embeddings (ESSENTIAL)
+safetensors
+huggingface-hub
+regex
+
+# Optional: Uncomment if you have NVIDIA GPU and want CUDA support
+# torch==2.8.0+cu121
+# torchaudio==2.8.0+cu121
+# torchvision==0.19.0+cu121
+
+# Note: Some packages might need system-level dependencies:
+# - For audio processing: sudo apt-get install ffmpeg libsndfile1
+# - For PyAudio: sudo apt-get install portaudio19-dev python3-pyaudio
