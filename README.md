@@ -74,7 +74,7 @@ Before starting, ensure you have:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone <https://github.com/Chinelonweke/Production-Ready-LLM-Application-with-RAG-Docker-and-GitHub-Actions>
 cd rag-application
 ```
 
